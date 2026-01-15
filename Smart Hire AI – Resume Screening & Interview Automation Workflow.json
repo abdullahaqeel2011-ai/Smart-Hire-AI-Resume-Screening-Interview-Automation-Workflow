@@ -265,7 +265,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const aiData = $input.item.json;\n\n// 1️⃣ Get resume text\nlet resumeText =\n  $('Map Extracted Text').item.json.text || \"\";\n\n// 2️⃣ CLEAN the resume text (VERY IMPORTANT)\nresumeText = resumeText\n  .toLowerCase()\n  .replace(/\\n/g, \" \")\n  .replace(/\\s+/g, \" \")\n  .replace(/[^\\w\\s]/g, \" \");\n\n// 3️⃣ Skill detection (robust)\nconst skillChecks = {\n  manual: resumeText.includes(\"manual\"),\n  api: resumeText.includes(\"api\"),\n  web: resumeText.includes(\"web\"),\n  postman: resumeText.includes(\"postman\"),\n};\n\n// 4️⃣ Count skills\nconst matchedSkills = Object.values(skillChecks).filter(Boolean).length;\n\n// 5️⃣ Final decision\nconst matchStatus =\n  matchedSkills >= 2 || aiData.match === \"HIRE\"\n    ? \"HIRE\"\n    : \"REJECT\";\n\nreturn [\n  {\n    json: {\n      match: matchStatus,\n      match_score: aiData.match_score || matchedSkills * 25,\n      summary: aiData.summary || \"\",\n      debug: {\n        cleaned_text_sample: resumeText.slice(0, 300),\n        skills_found: skillChecks,\n        matchedSkills\n      }\n    }\n  }\n];"
+        "jsCode": "const aiData = $input.first().json;\n\n// 1️⃣ Get resume text\nlet resumeText =\n  $('Extract Resume Text').first().json.text || \"\";\n\n// 2️⃣ CLEAN the resume text (VERY IMPORTANT)\nresumeText = resumeText\n  .toLowerCase()\n  .replace(/\\n/g, \" \")\n  .replace(/\\s+/g, \" \")\n  .replace(/[^\\w\\s]/g, \" \");\n\n// 3️⃣ Skill detection (robust)\nconst skillChecks = {\n  manual: resumeText.includes(\"manual\"),\n  api: resumeText.includes(\"api\"),\n  web: resumeText.includes(\"web\"),\n  postman: resumeText.includes(\"postman\"),\n};\n\n// 4️⃣ Count skills\nconst matchedSkills = Object.values(skillChecks).filter(Boolean).length;\n\n// 5️⃣ Final decision\nconst matchStatus =\n  matchedSkills >= 2 || aiData.match === \"HIRE\"\n    ? \"HIRE\"\n    : \"REJECT\";\n\nreturn [\n  {\n    json: {\n      match: matchStatus,\n      match_score: aiData.match_score || matchedSkills * 25,\n      summary: aiData.summary || \"\",\n      debug: {\n        cleaned_text_sample: resumeText.slice(0, 300),\n        skills_found: skillChecks,\n        matchedSkills\n      }\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -402,7 +402,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "ba61508e-d119-4546-903b-6a1588f9e43d",
+  "versionId": "f7884c03-2c69-49f9-8f89-78be25c8e530",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e707f145f81abccb504d246451d1e8aefc93766ec616434d71badbf48563f9"
