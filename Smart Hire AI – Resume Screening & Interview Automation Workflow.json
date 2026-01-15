@@ -157,7 +157,7 @@
       "parameters": {
         "sendTo": "={{ $('Form Trigger - Resume Submission').item.json['Applicant Email'] }}",
         "subject": "Interview Invitation",
-        "message": "=<p>Dear {{$json.applicant_name}},</p>\n\n<p>You are shortlisted for interview.</p>\n\n<p><strong>Date:</strong> {{$json.interview_date}}<br>\n<strong>Time:</strong> {{$json.interview_time}}</p>\n\n<p>HR Team</p>",
+        "message": "=<p>Dear {{ $('Form Trigger - Resume Submission').item.json['Applicant Name'] }},</p>\n\n<p>Congratulations! You have been shortlisted for an interview for the Software Quality Assurance Engineer position.</p>\n\n<p><strong>Date:</strong> {{$json.interview_date}}<br>\n<strong>Time:</strong> {{$json.interview_time}}</p>\n\n<p>Please ensure you are available at the scheduled time. We look forward to speaking with you.</p>\n\n<p>Best regards,<br>\nHR Team</p>\n",
         "options": {}
       },
       "id": "822d2d37-35cd-4a63-972c-83011d96e2b4",
@@ -180,7 +180,7 @@
       "parameters": {
         "sendTo": "= lucasmia072@gmail.com",
         "subject": "Rejected",
-        "message": "Thank you for applying. We are moving forward with other candidates.",
+        "message": "=<p>Dear {{ $('Form Trigger - Resume Submission').item.json['Applicant Name'] }},</p>\n\n<p>Thank you for applying for the Software Quality Assurance Engineer position. We appreciate the time and effort you put into your application.</p>\n\n<p>After careful consideration, we regret to inform you that we will be moving forward with other candidates.</p>\n\n<p>We encourage you to apply again in the future for other opportunities that match your profile.</p>\n\n<p>Best regards,<br>\nHR Team</p>",
         "options": {}
       },
       "id": "7cfbdd3d-0d17-4174-b1b4-6ecf946d9e64",
@@ -402,7 +402,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "f7884c03-2c69-49f9-8f89-78be25c8e530",
+  "versionId": "e38501d2-87b6-45d5-b29c-a9003bb6319f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "35e707f145f81abccb504d246451d1e8aefc93766ec616434d71badbf48563f9"
