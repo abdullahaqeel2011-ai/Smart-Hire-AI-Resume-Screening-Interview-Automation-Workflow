@@ -1,0 +1,412 @@
+{
+  "name": "Smart Hire AI – Resume Screening & Interview Automation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "resume-form",
+        "formTitle": "Job Application",
+        "formDescription": "Submit your resume",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Applicant Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Applicant Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume PDF",
+              "fieldType": "file",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0af24405-2fea-4f35-bc71-5613bcb3cdde",
+      "name": "Form Trigger - Resume Submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        192
+      ],
+      "webhookId": "d2d66a24-4d5f-4ef1-a5ae-db693d4af40b"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Resume_PDF",
+        "options": {}
+      },
+      "id": "e1a4d581-4ffc-41dc-93d1-3057bf91b15b",
+      "name": "Extract Resume Text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "name": "job_requirements",
+              "stringValue": "Software Quality Assurance Engineer with experience in: \n- Manual testing \n- Web and mobile application testing \n- API testing using Postman \n- Regression, smoke, and sanity testing \n- Bug reporting and tracking \n- Collaboration with development teams"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6a5b259-ebe5-400f-aaf6-f6ae01f618cb",
+      "name": "Set Job Requirements",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        128,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "26e11893-d51b-448a-a5b1-2925c190bf3a",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        304,
+        400
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "eCIZeS68CxLKklyY",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "Analyze the resume and decide if it matches the job requirements.",
+        "options": {
+          "systemMessage": "=You are an HR resume screening assistant.\n\nJOB REQUIREMENTS:\n{{ $('Set Job Requirements').item.json.job_requirements }}\n\nRESUME:\n{{ $('Map Extracted Text').item.json.text }}\n\nEvaluate the resume against the job requirements.\n\nRules:\n- If the resume is missing key skills or experience required, set \"match\" to \"REJECT\".\n- Only set \"HIRE\" if the candidate clearly satisfies all requirements.\n- Return ONLY valid JSON with:\n  - match_score (0 to 100)\n  - summary (string)\n  - match: \"HIRE\" or \"REJECT\""
+        }
+      },
+      "id": "ec0a8844-b5b2-418f-99a0-1663f55c70f8",
+      "name": "AI Resume Analyzer",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        304,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.match }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "HIRE",
+              "id": "399af2f7-5d1a-4a73-a8fe-d920da44cd32"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "475a62ad-7cdc-454f-bbc7-4e7cf7a9bb5a",
+      "name": "IF - Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        832,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d3a8fc5d-2d21-4b7c-b0a8-ee495016c27a",
+      "name": "Prepare Interview Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        1040,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Form Trigger - Resume Submission').item.json['Applicant Email'] }}",
+        "subject": "Interview Invitation",
+        "message": "=<p>Dear {{$json.applicant_name}},</p>\n\n<p>You are shortlisted for interview.</p>\n\n<p><strong>Date:</strong> {{$json.interview_date}}<br>\n<strong>Time:</strong> {{$json.interview_time}}</p>\n\n<p>HR Team</p>",
+        "options": {}
+      },
+      "id": "822d2d37-35cd-4a63-972c-83011d96e2b4",
+      "name": "Send Interview Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        64
+      ],
+      "webhookId": "5d91cd99-53b6-4dd3-818f-7fc0c61bc68c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xYSr4tkyx9LkSAaA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "= lucasmia072@gmail.com",
+        "subject": "Rejected",
+        "message": "Thank you for applying. We are moving forward with other candidates.",
+        "options": {}
+      },
+      "id": "7cfbdd3d-0d17-4174-b1b4-6ecf946d9e64",
+      "name": "Send Rejection Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        288
+      ],
+      "webhookId": "9a053447-2586-46f4-b711-486412b13958",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xYSr4tkyx9LkSAaA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5d5d84c7-9467-474f-9835-abc44c217ba8",
+              "name": "applicant_name",
+              "value": "={{ $('Form Trigger - Resume Submission').item.json['Applicant Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "3501f4bb-48e6-4a7a-8aca-ee5280993295",
+              "name": "applicant_email",
+              "value": "={{ $('Form Trigger - Resume Submission').item.json['Applicant Email'] }}",
+              "type": "string"
+            },
+            {
+              "id": "3b470682-4392-4500-abfe-af0bf3ecaaf5",
+              "name": "interview_date",
+              "value": "={{$now.plus(7,'days').toFormat('dd LLLL yyyy')}}",
+              "type": "string"
+            },
+            {
+              "id": "03f442fc-365c-4af6-810a-a6da8e36dc46",
+              "name": "interview_time",
+              "value": "={{$now.toFormat('hh:mm a')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1264,
+        64
+      ],
+      "id": "86c22e02-45fb-4571-b112-4d78361a1760",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d41f9e38-cdc3-4689-822a-267334cd274c",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        192
+      ],
+      "id": "da636f5c-9af1-4087-845c-f251c7fb0334",
+      "name": "Map Extracted Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiData = $input.item.json;\n\n// 1️⃣ Get resume text\nlet resumeText =\n  $('Map Extracted Text').item.json.text || \"\";\n\n// 2️⃣ CLEAN the resume text (VERY IMPORTANT)\nresumeText = resumeText\n  .toLowerCase()\n  .replace(/\\n/g, \" \")\n  .replace(/\\s+/g, \" \")\n  .replace(/[^\\w\\s]/g, \" \");\n\n// 3️⃣ Skill detection (robust)\nconst skillChecks = {\n  manual: resumeText.includes(\"manual\"),\n  api: resumeText.includes(\"api\"),\n  web: resumeText.includes(\"web\"),\n  postman: resumeText.includes(\"postman\"),\n};\n\n// 4️⃣ Count skills\nconst matchedSkills = Object.values(skillChecks).filter(Boolean).length;\n\n// 5️⃣ Final decision\nconst matchStatus =\n  matchedSkills >= 2 || aiData.match === \"HIRE\"\n    ? \"HIRE\"\n    : \"REJECT\";\n\nreturn [\n  {\n    json: {\n      match: matchStatus,\n      match_score: aiData.match_score || matchedSkills * 25,\n      summary: aiData.summary || \"\",\n      debug: {\n        cleaned_text_sample: resumeText.slice(0, 300),\n        skills_found: skillChecks,\n        matchedSkills\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        192
+      ],
+      "id": "236a20c9-a806-48df-8cfc-e0c3fbe7f6e1",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Trigger - Resume Submission": {
+      "main": [
+        [
+          {
+            "node": "Extract Resume Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Resume Text": {
+      "main": [
+        [
+          {
+            "node": "Map Extracted Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Job Requirements": {
+      "main": [
+        [
+          {
+            "node": "AI Resume Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Resume Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Decision": {
+      "main": [
+        [
+          {
+            "node": "Prepare Interview Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Rejection Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Interview Data": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Resume Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send Interview Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Extracted Text": {
+      "main": [
+        [
+          {
+            "node": "Set Job Requirements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "IF - Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "ba61508e-d119-4546-903b-6a1588f9e43d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "35e707f145f81abccb504d246451d1e8aefc93766ec616434d71badbf48563f9"
+  },
+  "id": "DX1Fn5mQZW86X9fE",
+  "tags": []
+}
